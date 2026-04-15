@@ -1,0 +1,51 @@
+{
+  "device": "cpu",
+  "num_classes": 4,
+  "class_to_idx": {
+    "bread": 0,
+    "champagnes": 1,
+    "milk": 2,
+    "sugar": 3
+  },
+  "epochs": 5,
+  "best_val_acc": 0.2759,
+  "test_loss": 1.5558,
+  "test_acc": 0.2833,
+  "history": [
+    {
+      "epoch": 1,
+      "train_loss": 1.5113,
+      "train_acc": 0.2336,
+      "val_loss": 1.4899,
+      "val_acc": 0.1897
+    },
+    {
+      "epoch": 2,
+      "train_loss": 1.4501,
+      "train_acc": 0.2664,
+      "val_loss": 1.5409,
+      "val_acc": 0.2759
+    },
+    {
+      "epoch": 3,
+      "train_loss": 1.4615,
+      "train_acc": 0.2701,
+      "val_loss": 1.6498,
+      "val_acc": 0.1897
+    },
+    {
+      "epoch": 4,
+      "train_loss": 1.4544,
+      "train_acc": 0.2664,
+      "val_loss": 1.6265,
+      "val_acc": 0.1552
+    },
+    {
+      "epoch": 5,
+      "train_loss": 1.4109,
+      "train_acc": 0.3029,
+      "val_loss": 1.6093,
+      "val_acc": 0.2069
+    }
+  ]
+}
