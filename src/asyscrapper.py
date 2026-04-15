@@ -5,7 +5,9 @@ import os
 from aiohttp import ClientSession, ClientTimeout
 
 API_URL = "https://world.openfoodfacts.org/cgi/search.pl"
-HEADERS = {"User-Agent": "MyAwesomeApp/1.0"}
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
+}
 
 OUTPUT_DIR = "data"
 
@@ -14,8 +16,8 @@ TARGET_COUNT = 180
 PAGE_SIZE = 100
 MAX_PAGES = 50
 
-MAX_CONCURRENT_REQUESTS = 10
-MAX_CONCURRENT_IMAGES = 10
+MAX_CONCURRENT_REQUESTS = 2  # Reduced to be gentler on API
+MAX_CONCURRENT_IMAGES = 5
 
 
 # -------------------------
@@ -62,19 +64,38 @@ async def fetch_page(session, category, page, page_size, sem):
     }
 
     async with sem:
-        try:
-            async with session.get(API_URL, params=params) as resp:
-                data = await resp.json()
-                return data.get("products", [])
-        except Exception as e:
-            print(f"⚠ Erreur API page {page} :", e)
-            return []
+        max_retries = 5  # Increased from 3
+        for attempt in range(max_retries):
+            try:
+                async with session.get(API_URL, params=params) as resp:
+                    if resp.status == 503:
+                        wait_time = 3 ** attempt  # Exponential: 1, 3, 9, 27, 81 seconds
+                        print(f"⚠ API 503 - Attente {wait_time}s avant nouvelle tentative...")
+                        await asyncio.sleep(wait_time)
+                        continue
+                    
+                    if resp.status != 200:
+                        print(f"⚠ Erreur API page {page} : HTTP {resp.status}")
+                        return []
+                    
+                    data = await resp.json()
+                    return data.get("products", [])
+            except asyncio.TimeoutError:
+                print(f"⚠ Timeout page {page}, tentative {attempt + 1}/{max_retries}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(3 ** attempt)
+            except Exception as e:
+                print(f"⚠ Erreur API page {page} : {e}")
+                if attempt < max_retries - 1:
+                    await asyncio.sleep(3 ** attempt)
+        
+        return []
 
 
 # -------------------------
 # Async image download
 # -------------------------
-async def download_image(session, url, image_id, sem, folder="data/images/sugar"):
+async def download_image(session, url, image_id, sem, folder="data/raw/images/{category}"):
     if not url:
         return
 
@@ -134,6 +155,7 @@ async def scrape(category, target_count, page_size, max_pages):
                         break
 
             page += 1
+            await asyncio.sleep(3)  # Increased from 1 to 3 seconds between page requests
 
         await asyncio.gather(*image_tasks)
         return valid_products
@@ -154,7 +176,7 @@ def save_to_csv(filename, rows):
 # -------------------------
 def main():
     products = asyncio.run(scrape(CATEGORY, TARGET_COUNT, PAGE_SIZE, MAX_PAGES))
-    output_file = f"{OUTPUT_DIR}/metadata_{CATEGORY}_{TARGET_COUNT}.csv"
+    output_file = f"data/raw/metadata_{CATEGORY}_{TARGET_COUNT}.csv"
     save_to_csv(output_file, products)
     print(f"✔ Fichier {output_file} créé. Produits valides collectés : {len(products)}")
 
