@@ -44,3 +44,34 @@ Les étudiants apprendront à :
 Ce dépôt est destiné **exclusivement à des fins pédagogiques** dans le cadre du cours BIDABI.  
 Le code et les ressources peuvent être simplifiés ou modifiés pour faciliter l’apprentissage.
 
+## Description
+Projet de classification d’images de produits alimentaires avec Deep Learning.
+
+Le pipeline comprend :
+•⁠  ⁠collecte des données (scraping)
+•⁠  ⁠stockage dataset RAW
+•⁠  ⁠séparation train / val / test
+•⁠  ⁠entraînement d’un modèle ResNet-18
+•⁠  ⁠sauvegarde du meilleur modèle
+•⁠  ⁠versioning avec Git et DVC
+
+## Dataset utilisé
+
+Catégories :
+•⁠  ⁠bread
+•⁠  ⁠milk
+•⁠  ⁠sugar
+•⁠  ⁠champagnes
+
+Structure :
+
+data/raw/images/<categorie>/
+
+Nombre total d’images : (mettre ton nombre)
+
+## Installation
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
